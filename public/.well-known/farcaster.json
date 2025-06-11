@@ -1,0 +1,32 @@
+{
+  "frame":{
+    "version":"1",
+    "name":"Wu-Tang Name Generator",
+    "description":"Generate your Wu-Tang name",
+    "subtitle":"Generate your Wu-Tang name",
+    "iconUrl":"https://wutang.llyxx.me/assets/wu-logo.png",
+    "homeUrl":"https://wutang.llyxx.me",
+    "imageUrl":"https://wutang.llyxx.me/assets/wu-logo.png",
+    "buttonTitle":"Generate Wu-Tang Name",
+    "splashImageUrl":"https://wutang.llyxx.me/assets/wu-logo.png",
+    "splashBackgroundColor":"#000",
+    "primaryCategory":"entertainment",
+    "tags":[
+      "music",
+      "entertainment",
+      "wutang"
+    ],
+    "requiredChains":[
+      "eip155:8453"
+    ],
+    "requiredCapabilities":[
+      "actions.signIn",
+      "wallet.getEthereumProvider"
+    ]
+  },
+  "accountAssociation":{
+    "header":"eyJmaWQiOjEwNjE5NzQsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhiYTlCNDU2NDI0RDU0OTg3QkI4MGQzRmM3ZTAzMGE0NmU0RkRERDAyIn0",
+    "payload":"eyJkb21haW4iOiJ3dXRhbmcubGx5eHgubWUifQ",
+    "signature":"MHhiNWRjMjlhMjNlMWVmNWNiZTNlNGRjZTE1Y2QzNGJhN2Y5MTNkZDU5YjQxOGVkYWNmZTJjOGFjYTVhMmMzYTc4NzA3YzlmNjIxOWViN2I0OWRmYmY2ZmNmMjI2NjZhMGJlOTM3ZWY0NDNhNmMxODliNmU1OGI5MmY4ODZiMzc1ODFi"
+  }
+}
