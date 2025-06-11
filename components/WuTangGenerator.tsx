@@ -27,6 +27,17 @@ export default function WuTangGenerator() {
     setWuName(generatedName);
   };
 
+  const handleShare = async () => {
+    try {
+      await sdk.actions.composeCast({
+        text: `My Wu-Tang name is ${wuName}!`,
+        embeds: [`https://farcaster.xyz/miniapps/dYyE0Wmqs08J/wu-tang-name-generator`]
+      });
+    } catch (error) {
+      console.error('Error sharing to Farcaster:', error);
+    }
+  };
+
   return (
     <section className="generator">
       {username && (
@@ -52,6 +63,12 @@ export default function WuTangGenerator() {
           <WuTangCanvas
             wuName={wuName}
           />
+          <button
+            onClick={handleShare}
+            className="mt-4 px-6 py-2 bg-purple-600 text-white font-bold rounded hover:bg-purple-700"
+          >
+            Share to Farcaster
+          </button>
         </div>
       )}
     </section>
