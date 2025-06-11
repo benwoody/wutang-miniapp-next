@@ -2,6 +2,8 @@
 
 A Farcaster Frame Miniapp that generates a Wu-Tang Clan style name based on your Farcaster username and displays it on a Wu-Tang logo background.
 
+Production miniapp on Farcaster: https://farcaster.xyz/miniapps/dYyE0Wmqs08J/wu-tang-name-generator
+
 ## Features
 
 - Automatically fetches your Farcaster username (when run as a Farcaster Frame)
