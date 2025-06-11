@@ -13,7 +13,9 @@ export default function WuTangGenerator() {
     const initFarcaster = async () => {
       await sdk.actions.ready();
       const context = await sdk.context;
-      setUsername(context.user.username);
+      if (context.user.username) {
+        setUsername(context.user.username);
+      }
     };
 
     initFarcaster();
