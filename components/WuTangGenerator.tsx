@@ -8,7 +8,6 @@ import { sdk } from '@farcaster/frame-sdk';
 export default function WuTangGenerator() {
   const [username, setUsername] = useState<string>('');
   const [wuName, setWuName] = useState<string>('');
-  const [imageData, setImageData] = useState<string>(''); // Fixed state declaration
 
   useEffect(() => {
     const initFarcaster = async () => {
@@ -24,11 +23,6 @@ export default function WuTangGenerator() {
     if (!username) return;
     const generatedName = generateWuTangName(username);
     setWuName(generatedName);
-  };
-
-  const handleImageGenerated = (image: string) => {
-    setImageData(image);
-    console.log('Image generated:', image); // Debug log
   };
 
   return (
@@ -55,7 +49,6 @@ export default function WuTangGenerator() {
           </div>
           <WuTangCanvas
             wuName={wuName}
-            onImageGenerated={handleImageGenerated}
           />
         </div>
       )}
