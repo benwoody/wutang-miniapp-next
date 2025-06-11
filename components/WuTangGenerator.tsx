@@ -30,7 +30,7 @@ export default function WuTangGenerator() {
   const handleShare = async () => {
     try {
       await sdk.actions.composeCast({
-        text: `My Wu-Tang name is ${wuName}!`,
+        text: `My Wu-Tang name is ${wuName}! Find out what yours is: `,
         embeds: [`https://farcaster.xyz/miniapps/dYyE0Wmqs08J/wu-tang-name-generator`]
       });
     } catch (error) {
