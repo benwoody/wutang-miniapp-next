@@ -30,7 +30,10 @@ describe('WuTangGenerator', () => {
   });
 
   it('shows username when loaded', async () => {
-    render(<WuTangGenerator />);
+    await act(async () => {
+      render(<WuTangGenerator />);
+    });
+
     expect(await screen.findByText('testuser')).toBeInTheDocument();
   });
 
