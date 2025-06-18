@@ -64,7 +64,7 @@ export default function WuTangGenerator() {
           </div>
           <WuTangCanvas
             wuName={wuName}
-            setImageData={setImageData}
+            onImageGenerated={setImageData}
           />
           {imageData && (
             <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>

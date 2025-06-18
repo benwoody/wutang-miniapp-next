@@ -35,7 +35,7 @@ export async function mintWuTangNFT({
   const tx = await contract.mintNFT(
     await signer.getAddress(),
     tokenURI,
-    { value: ethers.parseEther("0.003") }
+    { value: ethers.parseEther("0.002") }
   );
   await tx.wait();
   return tx;
