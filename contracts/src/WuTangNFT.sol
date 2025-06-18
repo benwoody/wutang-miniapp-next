@@ -11,7 +11,7 @@ contract WuTangNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     uint256 public nextTokenId;
     uint256 public constant MINT_PRICE = 0.002 ether;
-    uint256 public constant MAX_SUPPLY = 10000; // Optional: set max supply
+    uint256 public constant MAX_SUPPLY = 5000; // Matches unique Wu-Tang name combinations
     
     // Events for better tracking
     event NFTMinted(address indexed to, uint256 indexed tokenId, string tokenURI);

@@ -16,7 +16,12 @@ jest.mock('ethers', () => ({
   ethers: {
     BrowserProvider: jest.fn().mockImplementation(() => ({
       getNetwork: jest.fn().mockResolvedValue({ chainId: 8453 }),
-      getSigner: jest.fn().mockResolvedValue({}),
+      getSigner: jest.fn().mockResolvedValue({
+        getAddress: jest.fn().mockResolvedValue('0x1234567890123456789012345678901234567890'),
+      }),
+    })),
+    Contract: jest.fn().mockImplementation(() => ({
+      hasMinted: jest.fn().mockResolvedValue(false),
     })),
   },
 }));
@@ -63,21 +68,32 @@ describe('MintButton', () => {
     });
   });
 
-  it('renders mint NFT button', () => {
+  it('renders mint NFT button', async () => {
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
-    expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    
+    // Wait for the initial mint status check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
     expect(screen.getByText('(0.002 ETH)')).toBeInTheDocument();
   });
 
   it('calls mint function when clicked', async () => {
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
     
+    // Wait for the initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
+    
     await act(async () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
     });
 
     expect(mockMintWuTangNFT).toHaveBeenCalledWith({
-      signer: {},
+      signer: expect.objectContaining({
+        getAddress: expect.any(Function),
+      }),
       contractAddress: '0x1234567890123456789012345678901234567890',
       wuName: mockWuName,
       base64Image: mockBase64Image,
@@ -88,6 +104,11 @@ describe('MintButton', () => {
     mockMintWuTangNFT.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
+    
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
     
     act(() => {
       fireEvent.click(screen.getByText('Mint as NFT'));
@@ -100,6 +121,11 @@ describe('MintButton', () => {
 
   it('shows success message after successful mint', async () => {
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
+    
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
     
     await act(async () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
@@ -116,6 +142,11 @@ describe('MintButton', () => {
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
     
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
+    
     await act(async () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
     });
@@ -130,6 +161,11 @@ describe('MintButton', () => {
     mockMintWuTangNFT.mockRejectedValue(mockError);
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
+    
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
     
     await act(async () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
@@ -146,6 +182,11 @@ describe('MintButton', () => {
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
     
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
+    
     await act(async () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
     });
@@ -160,6 +201,11 @@ describe('MintButton', () => {
     mockMintWuTangNFT.mockRejectedValue(mockError);
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
+    
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
     
     await act(async () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
@@ -176,6 +222,11 @@ describe('MintButton', () => {
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
     
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
+    
     await act(async () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
     });
@@ -190,6 +241,11 @@ describe('MintButton', () => {
     mockMintWuTangNFT.mockRejectedValue(mockError);
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
+    
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
     
     await act(async () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
@@ -223,6 +279,11 @@ describe('MintButton', () => {
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
     
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
+    
     act(() => {
       fireEvent.click(screen.getByText('Mint as NFT'));
     });
@@ -241,14 +302,18 @@ describe('MintButton', () => {
   });
 
   describe('edge cases', () => {
-    it('handles empty base64Image', () => {
+    it('handles empty base64Image', async () => {
       render(<MintButton base64Image="" wuName={mockWuName} />);
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+      });
     });
 
-    it('handles empty wuName', () => {
+    it('handles empty wuName', async () => {
       render(<MintButton base64Image={mockBase64Image} wuName="" />);
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+      });
     });
   });
 });

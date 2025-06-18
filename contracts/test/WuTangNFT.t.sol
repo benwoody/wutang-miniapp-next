@@ -201,7 +201,7 @@ contract WuTangNFTTest is Test {
 
     function testContractConstants() public view {
         assertEq(nft.MINT_PRICE(), 0.002 ether);
-        assertEq(nft.MAX_SUPPLY(), 10000);
+        assertEq(nft.MAX_SUPPLY(), 5000);
     }
 
     function testTokenMetadata() public view {

@@ -9,14 +9,14 @@ export const prefixes = [
   "Eagle", "Hawk", "Phoenix", "Alpha", "Omega", "Gamma", "Sigma",
   "Vortex", "Shadowborn", "Lunar", "Ironclad", "Obsidian", "Turbocharged",
   "Solar", "Frostborn", "Infernal", "Wildstyle", "Dynamic", "Warborn", "Titan",
-  "Quantum", "Echo", "Phantom", "Zen", "Thunderous", "Untamed", "Savage",
+  "Quantum", "Echo", "Phantom", "Zen", "Thunderous", "Untamed",
   "Majestic", "Slick", "Ghostly", "Cybernetic", "Magnetic", "Stormborn",
-  "Electric", "Merciless", "Monolithic", "Blazing", "Perpetual", "Neo",
+  "Electric", "Merciless", "Monolithic", "Perpetual", "Neo",
   "Spectral", "Volcanic", "Runic", "Titanic", "Elemental", "Omniscient",
   "Draconic", "Epoch", "Spartan", "Nomadic", "Tectonic", "Feral", "Zealous",
   "Dagger", "Warped", "Frost", "Mirrored", "Eldritch", "Crystalline", "Meteoric",
-  "Interstellar", "Crimson", "Scarlet", "Azure", "Emerald", "Sapphire", "Ruby", "Ivory", "Onyx",
-  "Golden", "Silver", "Bronze", "Copper", "Platinum", "Obsidian", "Pearl", "Cyan",
+  "Interstellar", "Scarlet", "Azure", "Emerald", "Sapphire", "Ruby", "Ivory", "Onyx",
+  "Silver", "Bronze", "Copper", "Platinum", "Pearl", "Cyan",
   "Vermilion", "Indigo", "Amethyst", "Turquoise", "Magenta", "Teal", "Coral",
   "Amber", "Topaz", "Jade", "Garnet"
 ];
@@ -27,7 +27,7 @@ export const suffixes = [
   "Champion", "Sentinel", "Nomad", "Reaper", "Titan", "Vanguard",
   "Ronin", "Oracle", "Wanderer", "Mercenary", "Seer", "Gladiator",
   "Alchemist", "Scribe", "Juggernaut", "Phoenix", "Sultan", "Baron", "Outlaw",
-  "Leader", "Demon", "Wizard", "Gravedigger", "Wayfarer", "Shepherd"
+  "Leader", "Demon", "Wizard", "Gravedigger", "Wayfarer", "Shepherd", "Destroyer"
 ];
 
 export function generateWuTangName(seed: string): string {
