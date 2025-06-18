@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import WuTangNFTABI from "@/contracts/abis/WuTangNFT.json";
+import { logger } from "./logger";
 
 function toBase64(str: string) {
   if (typeof window === "undefined") {
@@ -31,9 +32,9 @@ export async function mintWuTangNFT({
   const metadataBase64 = toBase64(metadataString);
   const tokenURI = `data:application/json;base64,${metadataBase64}`;
 
-  const contract = new ethers.Contract(contractAddress, WuTangNFTABI as any, signer);
+  const contract = new ethers.Contract(contractAddress, WuTangNFTABI as ethers.InterfaceAbi, signer);
   
-  console.log("Sending transaction with params:", {
+  logger.debug("Sending transaction with params:", {
     to: await signer.getAddress(),
     tokenURI: tokenURI.substring(0, 100) + "...",
     value: "0.002 ETH",
@@ -50,22 +51,22 @@ export async function mintWuTangNFT({
     }
   );
   
-  console.log("Transaction sent:", tx.hash);
+  logger.debug("Transaction sent:", tx.hash);
   
   // For Farcaster wallet, we might not be able to wait for confirmation
   // So we'll try to wait with a timeout
   try {
-    console.log("Waiting for transaction confirmation...");
+    logger.debug("Waiting for transaction confirmation...");
     const receipt = await Promise.race([
       tx.wait(),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error("Transaction confirmation timeout")), 30000)
       )
     ]);
-    console.log("Transaction confirmed:", receipt);
+    logger.debug("Transaction confirmed:", receipt);
     return tx;
   } catch (waitError) {
-    console.log("Could not wait for confirmation, but transaction was sent:", waitError);
+    logger.debug("Could not wait for confirmation, but transaction was sent:", waitError);
     // Return the transaction anyway - it was successfully sent
     return tx;
   }

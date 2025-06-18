@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { mintWuTangNFT } from "@/utils/mintWuTangNFT";
 import { ethers } from "ethers";
 import { getContractConfig, SUPPORTED_CHAIN_IDS } from "@/config/contracts";
 import { sdk } from '@farcaster/frame-sdk';
+import { logger } from "@/utils/logger";
 
 export default function MintButton({
   wuName,
@@ -14,31 +15,31 @@ export default function MintButton({
   const [status, setStatus] = useState<string | null>(null);
   const [hasAlreadyMinted, setHasAlreadyMinted] = useState<boolean>(false);
   const [isCheckingMintStatus, setIsCheckingMintStatus] = useState<boolean>(true);
-  const [walletType, setWalletType] = useState<string | null>(null);
+  const [, setWalletType] = useState<string | null>(null);
 
   const checkNetworkAndGetConfig = async (provider: ethers.BrowserProvider) => {
     const network = await provider.getNetwork();
     const chainId = Number(network.chainId);
     
-    console.log(`🔍 Current wallet network: ${chainId}`);
+    logger.debug(`🔍 Current wallet network: ${chainId}`);
     
     // Check if we're forcing testnet mode via URL parameter
     const urlParams = new URLSearchParams(window.location.search);
     const forceTestnet = urlParams.get('testnet') === 'true';
     
-    console.log(`🔍 Testnet mode from URL: ${forceTestnet}`);
+    logger.debug(`🔍 Testnet mode from URL: ${forceTestnet}`);
     
     if (forceTestnet) {
       // Force use of testnet config (Base Sepolia)
-      console.log(`✅ Testnet mode enabled - using Base Sepolia config (current network: ${chainId})`);
+      logger.debug(`✅ Testnet mode enabled - using Base Sepolia config (current network: ${chainId})`);
       const testnetConfig = getContractConfig(84532);
-      console.log(`🔍 Testnet config:`, testnetConfig);
+      logger.debug(`🔍 Testnet config:`, testnetConfig);
       
       if (!testnetConfig || testnetConfig.contractAddress === "0x0000000000000000000000000000000000000000") {
         throw new Error(`Testnet contract not deployed on Base Sepolia yet`);
       }
       
-      console.log(`✅ Using ${testnetConfig.name} (84532) - Contract: ${testnetConfig.contractAddress}`);
+      logger.debug(`✅ Using ${testnetConfig.name} (84532) - Contract: ${testnetConfig.contractAddress}`);
       return { chainId: 84532, config: testnetConfig };
     }
     
@@ -47,66 +48,66 @@ export default function MintButton({
     }
     
     const config = getContractConfig(chainId);
-    console.log(`🔍 Network config for ${chainId}:`, config);
+    logger.debug(`🔍 Network config for ${chainId}:`, config);
     
     if (!config || config.contractAddress === "0x0000000000000000000000000000000000000000") {
       throw new Error(`Contract not deployed on ${config?.name || 'this network'} yet. Please use ?testnet=true for testing.`);
     }
     
-    console.log(`✅ Using ${config.name} (${chainId}) - Contract: ${config.contractAddress}`);
+    logger.debug(`✅ Using ${config.name} (${chainId}) - Contract: ${config.contractAddress}`);
     
     return { chainId, config };
   };
 
   const getWalletProvider = async () => {
-    console.log("Starting Farcaster wallet detection...");
+    logger.debug("Starting Farcaster wallet detection...");
     
     try {
-      console.log("Getting Farcaster context...");
+      logger.debug("Getting Farcaster context...");
       const context = await sdk.context;
-      console.log("Farcaster context:", context);
+      logger.debug("Farcaster context:", context);
       
       // Check if we're in Farcaster and have wallet access
       if (context.client && context.user) {
-        console.log("✅ In Farcaster environment with client and user");
+        logger.debug("✅ In Farcaster environment with client and user");
         
-        console.log("Calling sdk.wallet.getEthereumProvider()...");
+        logger.debug("Calling sdk.wallet.getEthereumProvider()...");
         const walletProvider = await sdk.wallet.getEthereumProvider();
         
-        console.log("Farcaster wallet provider result:", walletProvider);
+        logger.debug("Farcaster wallet provider result:", walletProvider);
         
-        if (walletProvider && typeof (walletProvider as any).request === 'function') {
-          console.log("✅ Successfully got Farcaster wallet provider");
+        if (walletProvider && typeof (walletProvider as ethers.Eip1193Provider).request === 'function') {
+          logger.debug("✅ Successfully got Farcaster wallet provider");
           setWalletType("Farcaster");
-          return new ethers.BrowserProvider(walletProvider as any);
+          return new ethers.BrowserProvider(walletProvider as ethers.Eip1193Provider);
         } else {
-          console.log("❌ Farcaster wallet provider invalid or missing request method");
+          logger.debug("❌ Farcaster wallet provider invalid or missing request method");
           throw new Error("Farcaster wallet provider is not valid");
         }
       } else {
-        console.log("❌ Not in Farcaster context or missing client/user");
+        logger.debug("❌ Not in Farcaster context or missing client/user");
         throw new Error("Please open this app in Farcaster");
       }
     } catch (error) {
-      console.log("❌ Farcaster wallet failed:", error);
+      logger.debug("❌ Farcaster wallet failed:", error);
       throw new Error("Failed to connect to Farcaster wallet. Please try refreshing the app.");
     }
   };
 
-  const checkIfUserHasMinted = async () => {
+  const checkIfUserHasMinted = useCallback(async () => {
     try {
       // In Farcaster, we might not be able to check mint status without user interaction
       // So we'll skip the check and just show the mint button
       const context = await sdk.context;
       if (context.client && context.user) {
-        console.log("In Farcaster environment - skipping mint status check");
+        logger.debug("In Farcaster environment - skipping mint status check");
         setIsCheckingMintStatus(false);
         return;
       }
 
       // Only check mint status for external wallets
       const provider = await getWalletProvider();
-      const { chainId, config } = await checkNetworkAndGetConfig(provider);
+      const { config } = await checkNetworkAndGetConfig(provider);
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
 
@@ -126,16 +127,16 @@ export default function MintButton({
         setStatus("You have already minted an NFT");
       }
     } catch (error) {
-      console.log("Could not check mint status:", error);
+      logger.debug("Could not check mint status:", error);
       // Don't set error status here, just allow the user to try minting
     } finally {
       setIsCheckingMintStatus(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkIfUserHasMinted();
-  }, []);
+  }, [checkIfUserHasMinted]);
 
   const handleMint = async () => {
     setStatus("Checking wallet...");
@@ -143,7 +144,7 @@ export default function MintButton({
       const provider = await getWalletProvider();
       
       // Check network and get contract config
-      const { chainId, config } = await checkNetworkAndGetConfig(provider);
+      const { config } = await checkNetworkAndGetConfig(provider);
       
       setStatus(`Connecting to wallet on ${config.name}...`);
       const signer = await provider.getSigner();
@@ -161,33 +162,36 @@ export default function MintButton({
       
       if (tx && tx.hash) {
         setStatus(`NFT minted successfully! 🎉 Transaction: ${tx.hash.substring(0, 10)}...`);
-        console.log(`View on explorer: ${config.explorerUrl}/tx/${tx.hash}`);
+        logger.log(`View on explorer: ${config.explorerUrl}/tx/${tx.hash}`);
       } else {
         setStatus("NFT mint transaction sent! 🎉");
       }
       
-      console.log("Transaction:", tx);
-    } catch (err: any) {
-      console.error("Mint error:", err);
+      logger.debug("Transaction:", tx);
+    } catch (err: unknown) {
+      logger.error("Mint error:", err);
       
-      if (err.code === "ACTION_REJECTED" || err.code === 4001 || err.message.includes("user rejected") || err.message.includes("ethers-user-denied")) {
+      const error = err as { code?: string | number; message?: string };
+      const errorMessage = error.message || String(err);
+      
+      if (error.code === "ACTION_REJECTED" || error.code === 4001 || errorMessage.includes("user rejected") || errorMessage.includes("ethers-user-denied")) {
         setStatus("Transaction cancelled by user");
-      } else if (err.message.includes("User has already minted")) {
+      } else if (errorMessage.includes("User has already minted")) {
         setStatus("You have already minted an NFT");
-      } else if (err.message.includes("Incorrect ETH amount")) {
+      } else if (errorMessage.includes("Incorrect ETH amount")) {
         setStatus("Incorrect ETH amount (need 0.002 ETH)");
-      } else if (err.message.includes("switch to Base") || err.message.includes("Supported networks")) {
-        setStatus(err.message);
-      } else if (err.message.includes("Contract not deployed")) {
-        setStatus(err.message);
-      } else if (err.message.includes("No wallet found")) {
+      } else if (errorMessage.includes("switch to Base") || errorMessage.includes("Supported networks")) {
+        setStatus(errorMessage);
+      } else if (errorMessage.includes("Contract not deployed")) {
+        setStatus(errorMessage);
+      } else if (errorMessage.includes("No wallet found")) {
         setStatus("Please open in Farcaster app or connect external wallet");
-      } else if (err.message.includes("UnsupportedMethodError") || err.message.includes("eth_estimateGas")) {
+      } else if (errorMessage.includes("UnsupportedMethodError") || errorMessage.includes("eth_estimateGas")) {
         setStatus("Farcaster wallet compatibility issue. Please try again.");
-      } else if (err.message.includes("does not support the requested method")) {
+      } else if (errorMessage.includes("does not support the requested method")) {
         setStatus("Wallet method not supported. Please try again.");
       } else {
-        setStatus("Mint failed: " + err.message);
+        setStatus("Mint failed: " + errorMessage);
       }
     }
   };

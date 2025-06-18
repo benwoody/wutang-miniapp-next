@@ -25,7 +25,7 @@ jest.mock('@/lib/wu-names', () => ({
 
 // Mock the WuTangCanvas component
 jest.mock('./WuTangCanvas', () => {
-  return function MockWuTangCanvas({ wuName, onImageGenerated }: any) {
+  return function MockWuTangCanvas({ wuName, onImageGenerated }: { wuName: string; onImageGenerated: (image: string) => void }) {
     // Simulate image generation after a short delay
     React.useEffect(() => {
       const timer = setTimeout(() => {
@@ -40,7 +40,7 @@ jest.mock('./WuTangCanvas', () => {
 
 // Mock the MintButton component
 jest.mock('./MintButton', () => {
-  return function MockMintButton({ wuName, base64Image }: any) {
+  return function MockMintButton({ wuName, base64Image }: { wuName: string; base64Image: string }) {
     return (
       <div data-testid="mint-button">
         Mint Button for {wuName}
@@ -51,7 +51,7 @@ jest.mock('./MintButton', () => {
 });
 
 // Add React import for the mock
-const React = require('react');
+import React from 'react';
 
 describe('WuTangGenerator', () => {
   beforeEach(() => {

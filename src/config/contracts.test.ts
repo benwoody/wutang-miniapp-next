@@ -166,7 +166,7 @@ describe('Contract Configuration', () => {
     });
 
     it('handles string chain IDs', () => {
-      // @ts-ignore - testing runtime behavior
+      // @ts-expect-error - testing runtime behavior
       const config = getContractConfig('8453');
       // JavaScript coerces string '8453' to number 8453, so this actually works
       expect(config).toBeDefined();
@@ -174,13 +174,13 @@ describe('Contract Configuration', () => {
     });
 
     it('handles null chain ID', () => {
-      // @ts-ignore - testing runtime behavior
+      // @ts-expect-error - testing runtime behavior
       const config = getContractConfig(null);
       expect(config).toBeUndefined();
     });
 
     it('handles undefined chain ID', () => {
-      // @ts-ignore - testing runtime behavior
+      // @ts-expect-error - testing runtime behavior
       const config = getContractConfig(undefined);
       expect(config).toBeUndefined();
     });

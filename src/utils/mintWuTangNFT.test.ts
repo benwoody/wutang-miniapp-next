@@ -20,7 +20,7 @@ describe('mintWuTangNFT', () => {
   };
 
   const mockParams = {
-    signer: mockSigner as any,
+    signer: mockSigner as unknown as ethers.Signer,
     contractAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
     wuName: 'Ghostface Killah',
     base64Image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -54,7 +54,7 @@ describe('mintWuTangNFT', () => {
     expect(mockContract.mintNFT).toHaveBeenCalledWith(
       '0x1234567890123456789012345678901234567890',
       expect.stringContaining('data:application/json;base64,'),
-      { value: '2000000000000000' }
+      { value: '2000000000000000', gasLimit: 300000 }
     );
   });
 

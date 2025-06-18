@@ -2,7 +2,7 @@
 export const suppressSVGErrors = () => {
   if (typeof window !== 'undefined') {
     const originalError = console.error;
-    console.error = (...args: any[]) => {
+    console.error = (...args: unknown[]) => {
       const message = args.join(' ');
       
       // Suppress known SVG attribute errors from third-party libraries

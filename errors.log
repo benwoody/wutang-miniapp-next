@@ -1,0 +1,66 @@
+[16:09:42.418] Running build in Washington, D.C., USA (East) – iad1
+[16:09:42.419] Build machine configuration: 2 cores, 8 GB
+[16:09:42.459] Cloning github.com/benwoody/wutang-miniapp-next (Branch: main, Commit: f44b9ba)
+[16:09:48.166] Cloning completed: 5.707s
+[16:09:48.434] Restored build cache from previous deployment (4twCANcxJXY9oaALWneixnqht2a5)
+[16:09:49.036] Running "vercel build"
+[16:09:49.476] Vercel CLI 43.1.0
+[16:09:50.457] Installing dependencies...
+[16:09:53.326] 
+[16:09:53.327] added 9 packages in 2s
+[16:09:53.327] 
+[16:09:53.327] 196 packages are looking for funding
+[16:09:53.327]   run `npm fund` for details
+[16:09:53.364] Detected Next.js version: 15.3.3
+[16:09:53.370] Running "npm run build"
+[16:09:53.896] 
+[16:09:53.897] > wutang-miniapp-next@0.1.0 build
+[16:09:53.897] > next build
+[16:09:53.897] 
+[16:09:54.818]    ▲ Next.js 15.3.3
+[16:09:54.818] 
+[16:09:54.849]    Creating an optimized production build ...
+[16:10:11.139]  ✓ Compiled successfully in 12.0s
+[16:10:11.143]    Linting and checking validity of types ...
+[16:10:15.840] 
+[16:10:15.840] Failed to compile.
+[16:10:15.840] 
+[16:10:15.840] ./src/app/page.tsx
+[16:10:15.840] 10:10  Error: 'context' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[16:10:15.840] 10:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.841] 
+[16:10:15.841] ./src/components/MintButton.test.tsx
+[16:10:15.841] 268:33  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.841] 
+[16:10:15.841] ./src/components/MintButton.tsx
+[16:10:15.841] 17:10  Error: 'walletType' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[16:10:15.841] 78:57  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.841] 81:63  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.841] 109:15  Error: 'chainId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[16:10:15.841] 138:6  Warning: React Hook useEffect has a missing dependency: 'checkIfUserHasMinted'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+[16:10:15.841] 146:15  Error: 'chainId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[16:10:15.841] 170:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.841] 
+[16:10:15.841] ./src/components/WuTangGenerator.test.tsx
+[16:10:15.841] 28:66  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.842] 43:59  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.842] 54:15  Error: A `require()` style import is forbidden.  @typescript-eslint/no-require-imports
+[16:10:15.842] 
+[16:10:15.842] ./src/config/contracts.test.ts
+[16:10:15.842] 169:7  Error: Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free.  @typescript-eslint/ban-ts-comment
+[16:10:15.842] 177:7  Error: Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free.  @typescript-eslint/ban-ts-comment
+[16:10:15.842] 183:7  Error: Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free.  @typescript-eslint/ban-ts-comment
+[16:10:15.843] 
+[16:10:15.843] ./src/utils/mintWuTangNFT.test.ts
+[16:10:15.843] 23:27  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.843] 
+[16:10:15.843] ./src/utils/mintWuTangNFT.ts
+[16:10:15.843] 34:73  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.843] 
+[16:10:15.843] ./src/utils/suppressSVGErrors.ts
+[16:10:15.843] 5:31  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[16:10:15.843] 
+[16:10:15.843] info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[16:10:15.876] Error: Command "npm run build" exited with 1
+[16:10:16.172] 
+[16:10:19.174] Exiting build container

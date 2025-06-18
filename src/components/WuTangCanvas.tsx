@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { compressCanvasImage, getBase64SizeKB } from '@/utils/imageCompression';
+import { compressCanvasImage } from '@/utils/imageCompression';
 
 interface WuTangCanvasProps {
   wuName: string;
@@ -43,8 +43,7 @@ export default function WuTangCanvas({ wuName, onImageGenerated }: WuTangCanvasP
           format: 'jpeg'   // JPEG for better compression
         });
         
-        const sizeKB = getBase64SizeKB(compressedImage);
-        console.log(`Generated Wu-Tang image: ${sizeKB.toFixed(1)}KB`);
+        // Image generated successfully
         
         onImageGenerated(compressedImage);
       }

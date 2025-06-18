@@ -171,7 +171,7 @@ describe('MintButton', () => {
   });
 
   it('shows error message when transaction is cancelled', async () => {
-    const mockError = { code: 'ACTION_REJECTED' };
+    const mockError = { code: 'ACTION_REJECTED' } as unknown;
     mockMintWuTangNFT.mockRejectedValue(mockError);
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
@@ -265,7 +265,7 @@ describe('MintButton', () => {
   });
 
   it('shows different status messages during the process', async () => {
-    let resolvePromise: (value: any) => void;
+    let resolvePromise: (value: unknown) => void;
     const promise = new Promise(resolve => {
       resolvePromise = resolve;
     });

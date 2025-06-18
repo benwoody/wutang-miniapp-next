@@ -35,8 +35,8 @@ export default function WuTangGenerator() {
         text: `My Wu-Tang name is ${wuName}! Find out what yours is: `,
         embeds: [`https://farcaster.xyz/miniapps/dYyE0Wmqs08J/wu-tang-name-generator`]
       });
-    } catch (error) {
-      console.error('Error sharing to Farcaster:', error);
+    } catch {
+      // Error sharing to Farcaster - silently fail
     }
   };
 

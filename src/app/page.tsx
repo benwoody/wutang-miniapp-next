@@ -7,7 +7,7 @@ import { suppressSVGErrors } from '@/utils/suppressSVGErrors';
 
 export default function Home() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<any>(null);
+  const [, setContext] = useState<unknown>(null);
 
   useEffect(() => {
     // Suppress SVG-related console errors from third-party libraries
@@ -18,9 +18,9 @@ export default function Home() {
         const ctx = await sdk.context;
         setContext(ctx);
         setIsSDKLoaded(true);
-        console.log('Farcaster SDK loaded:', ctx);
-      } catch (error) {
-        console.log('Not in Farcaster frame, continuing without SDK:', error);
+        // Farcaster SDK loaded successfully
+      } catch {
+        // Not in Farcaster frame, continuing without SDK
         setIsSDKLoaded(true); // Still allow the app to work outside Farcaster
       }
     };
