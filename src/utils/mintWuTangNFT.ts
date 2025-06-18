@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import WuTangNFTABI from "@/contracts/WuTangNFT.json";
+import WuTangNFTABI from "@/contracts/abis/WuTangNFT.json";
 
 function toBase64(str: string) {
   if (typeof window === "undefined") {
@@ -31,7 +31,7 @@ export async function mintWuTangNFT({
   const metadataBase64 = toBase64(metadataString);
   const tokenURI = `data:application/json;base64,${metadataBase64}`;
 
-  const contract = new ethers.Contract(contractAddress, WuTangNFTABI, signer);
+  const contract = new ethers.Contract(contractAddress, WuTangNFTABI as any, signer);
   const tx = await contract.mintNFT(
     await signer.getAddress(),
     tokenURI,

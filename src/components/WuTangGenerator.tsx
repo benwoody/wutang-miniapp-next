@@ -67,18 +67,17 @@ export default function WuTangGenerator() {
             onImageGenerated={setImageData}
           />
           {imageData && (
-            <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+            <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", justifyContent: "center" }}>
               <button
                 onClick={handleShare}
                 className="px-6 py-2 bg-purple-600 text-white font-bold rounded hover:bg-purple-700"
               >
                 Share to Farcaster
               </button>
-              <MintButton
-                wuName={wuName}
-                base64Image={imageData}
-                contractAddress="0xYourDeployedContractAddress"
-              />
+            <MintButton
+              wuName={wuName}
+              base64Image={imageData}
+            />
             </div>
           )}
         </div>
