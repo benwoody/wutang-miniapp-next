@@ -70,13 +70,14 @@ describe('Contract Configuration', () => {
       // Note: Currently using placeholder address, will be updated when deployed
     });
 
-    it('different networks have same placeholder address (until deployment)', () => {
+    it('mainnet uses placeholder, sepolia has deployed contract', () => {
       const mainnetConfig = getContractConfig(8453);
       const sepoliaConfig = getContractConfig(84532);
       
-      // Currently both use placeholder addresses
+      // Mainnet still uses placeholder address
       expect(mainnetConfig?.contractAddress).toBe('0x0000000000000000000000000000000000000000');
-      expect(sepoliaConfig?.contractAddress).toBe('0x0000000000000000000000000000000000000000');
+      // Sepolia has deployed contract
+      expect(sepoliaConfig?.contractAddress).toBe('0x18f2589406bda8202C979F5d9c79400d16Ff25C5');
     });
   });
 
@@ -144,16 +145,17 @@ describe('Contract Configuration', () => {
       });
     });
 
-    it('contract addresses are currently the same (placeholder)', () => {
+    it('contract addresses are different (mainnet placeholder, sepolia deployed)', () => {
       const addresses = SUPPORTED_CHAIN_IDS.map(chainId => {
         const config = getContractConfig(chainId);
         return config?.contractAddress;
       });
 
-      // Currently all use the same placeholder address
+      // Now we have different addresses: mainnet placeholder, sepolia deployed
       const uniqueAddresses = new Set(addresses);
-      expect(uniqueAddresses.size).toBe(1);
-      expect(addresses[0]).toBe('0x0000000000000000000000000000000000000000');
+      expect(uniqueAddresses.size).toBe(2);
+      expect(addresses).toContain('0x0000000000000000000000000000000000000000'); // Mainnet placeholder
+      expect(addresses).toContain('0x18f2589406bda8202C979F5d9c79400d16Ff25C5'); // Sepolia deployed
     });
   });
 

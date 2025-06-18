@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react';
 import { sdk } from '@farcaster/frame-sdk';
 import WuTangGenerator from '@/components/WuTangGenerator';
+import { suppressSVGErrors } from '@/utils/suppressSVGErrors';
 
 export default function Home() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<any>(null);
 
   useEffect(() => {
+    // Suppress SVG-related console errors from third-party libraries
+    suppressSVGErrors();
+    
     const load = async () => {
       try {
         const ctx = await sdk.context;
@@ -35,10 +39,19 @@ export default function Home() {
     );
   }
 
+  // Check if testnet mode is enabled
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const isTestnetMode = urlParams?.get('testnet') === 'true';
+
   return (
     <main>
       <header>
         <h1>Wu-Tang Name Generator</h1>
+        {isTestnetMode && (
+          <div className="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-3 rounded mb-4 text-center">
+            🧪 <strong>Testnet Mode</strong> - Using Base Sepolia for testing
+          </div>
+        )}
       </header>
       <WuTangGenerator />
     </main>

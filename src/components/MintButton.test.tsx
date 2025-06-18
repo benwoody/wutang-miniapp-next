@@ -40,22 +40,16 @@ jest.mock('@/config/contracts', () => ({
 jest.mock('@farcaster/frame-sdk', () => ({
   sdk: {
     context: Promise.resolve({
-      client: null,
-      user: null,
+      client: { id: 'test-client' },
+      user: { fid: 12345 },
     }),
     wallet: {
-      ethProvider: null,
+      getEthereumProvider: jest.fn().mockResolvedValue({
+        request: jest.fn(),
+      }),
     },
   },
 }));
-
-// Mock window.ethereum
-Object.defineProperty(window, 'ethereum', {
-  value: {
-    request: jest.fn(),
-  },
-  writable: true,
-});
 
 describe('MintButton', () => {
   const mockBase64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';

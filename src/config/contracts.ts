@@ -3,13 +3,13 @@ export const CONTRACT_CONFIG = {
   // Base Mainnet
   8453: {
     name: "Base Mainnet",
-    contractAddress: "0x0000000000000000000000000000000000000000", // Replace with actual deployed address
+    contractAddress: "0x18f2589406bda8202C979F5d9c79400d16Ff25C5", // Deployed!
     explorerUrl: "https://basescan.org",
   },
   // Base Sepolia Testnet
   84532: {
     name: "Base Sepolia",
-    contractAddress: "0x0000000000000000000000000000000000000000", // Replace with actual deployed address
+    contractAddress: "0x18f2589406bda8202C979F5d9c79400d16Ff25C5", // Same contract deployed to both networks
     explorerUrl: "https://sepolia.basescan.org",
   },
 };

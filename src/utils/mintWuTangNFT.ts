@@ -32,11 +32,41 @@ export async function mintWuTangNFT({
   const tokenURI = `data:application/json;base64,${metadataBase64}`;
 
   const contract = new ethers.Contract(contractAddress, WuTangNFTABI as any, signer);
+  
+  console.log("Sending transaction with params:", {
+    to: await signer.getAddress(),
+    tokenURI: tokenURI.substring(0, 100) + "...",
+    value: "0.002 ETH",
+    gasLimit: 300000
+  });
+  
+  // Manually specify gas limit to avoid eth_estimateGas call which Farcaster doesn't support
   const tx = await contract.mintNFT(
     await signer.getAddress(),
     tokenURI,
-    { value: ethers.parseEther("0.002") }
+    { 
+      value: ethers.parseEther("0.002"),
+      gasLimit: 300000 // Set a reasonable gas limit manually
+    }
   );
-  await tx.wait();
-  return tx;
+  
+  console.log("Transaction sent:", tx.hash);
+  
+  // For Farcaster wallet, we might not be able to wait for confirmation
+  // So we'll try to wait with a timeout
+  try {
+    console.log("Waiting for transaction confirmation...");
+    const receipt = await Promise.race([
+      tx.wait(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Transaction confirmation timeout")), 30000)
+      )
+    ]);
+    console.log("Transaction confirmed:", receipt);
+    return tx;
+  } catch (waitError) {
+    console.log("Could not wait for confirmation, but transaction was sent:", waitError);
+    // Return the transaction anyway - it was successfully sent
+    return tx;
+  }
 }

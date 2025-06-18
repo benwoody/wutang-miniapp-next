@@ -8,7 +8,18 @@ contract WuTangNFTScript is Script {
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        string memory privateKeyStr = vm.envString("PRIVATE_KEY");
+        uint256 deployerPrivateKey;
+        
+        // Handle private key with or without 0x prefix
+        if (bytes(privateKeyStr).length == 64) {
+            // No 0x prefix, add it
+            deployerPrivateKey = vm.parseUint(string(abi.encodePacked("0x", privateKeyStr)));
+        } else {
+            // Has 0x prefix
+            deployerPrivateKey = vm.parseUint(privateKeyStr);
+        }
+        
         address deployer = vm.addr(deployerPrivateKey);
         
         vm.startBroadcast(deployerPrivateKey);
