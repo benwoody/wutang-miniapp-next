@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { mintWuTangNFT } from "@/utils/mintWuTangNFT";
+import { testContractConnection } from "@/utils/testContract";
+import { getBase64SizeKB, validateImageSize } from "@/utils/imageCompression";
 import { ethers } from "ethers";
 import { getContractConfig, SUPPORTED_CHAIN_IDS } from "@/config/contracts";
 import { sdk } from '@farcaster/frame-sdk';
@@ -15,6 +17,7 @@ export default function MintButton({
   const [status, setStatus] = useState<string | null>(null);
   const [hasAlreadyMinted, setHasAlreadyMinted] = useState<boolean>(false);
   const [isCheckingMintStatus, setIsCheckingMintStatus] = useState<boolean>(true);
+  const [isMinting, setIsMinting] = useState<boolean>(false);
   const [, setWalletType] = useState<string | null>(null);
 
   const checkNetworkAndGetConfig = async (provider: ethers.BrowserProvider) => {
@@ -79,7 +82,23 @@ export default function MintButton({
         if (walletProvider && typeof (walletProvider as ethers.Eip1193Provider).request === 'function') {
           logger.debug("✅ Successfully got Farcaster wallet provider");
           setWalletType("Farcaster");
-          return new ethers.BrowserProvider(walletProvider as ethers.Eip1193Provider);
+          
+          // Test the provider before returning
+          try {
+            logger.debug("Testing provider...");
+            const accounts = await (walletProvider as ethers.Eip1193Provider).request({ method: 'eth_accounts' });
+            logger.debug("Provider accounts:", accounts);
+            
+            const chainId = await (walletProvider as ethers.Eip1193Provider).request({ method: 'eth_chainId' });
+            logger.debug("Provider chainId:", chainId);
+            
+            const browserProvider = new ethers.BrowserProvider(walletProvider as ethers.Eip1193Provider);
+            logger.debug("✅ BrowserProvider created successfully");
+            return browserProvider;
+          } catch (testError) {
+            logger.error("❌ Provider test failed:", testError);
+            throw new Error(`Farcaster wallet provider test failed: ${testError}`);
+          }
         } else {
           logger.debug("❌ Farcaster wallet provider invalid or missing request method");
           throw new Error("Farcaster wallet provider is not valid");
@@ -89,8 +108,8 @@ export default function MintButton({
         throw new Error("Please open this app in Farcaster");
       }
     } catch (error) {
-      logger.debug("❌ Farcaster wallet failed:", error);
-      throw new Error("Failed to connect to Farcaster wallet. Please try refreshing the app.");
+      logger.error("❌ Farcaster wallet failed:", error);
+      throw new Error(`Failed to connect to Farcaster wallet: ${error}`);
     }
   };
 
@@ -139,15 +158,38 @@ export default function MintButton({
   }, [checkIfUserHasMinted]);
 
   const handleMint = async () => {
+    const imageSizeKB = getBase64SizeKB(base64Image);
+    
+    if (imageSizeKB > 200) {
+      setStatus(`Image too large (${imageSizeKB.toFixed(1)}KB). Max 200KB allowed.`);
+      return;
+    }
+    
+    const validation = validateImageSize(base64Image, 200);
+    if (!validation.isValid) {
+      setStatus(validation.message || "Image validation failed");
+      return;
+    }
+    
+    setIsMinting(true);
     setStatus("Checking wallet...");
+    
     try {
       const provider = await getWalletProvider();
-      
-      // Check network and get contract config
-      const { config } = await checkNetworkAndGetConfig(provider);
+      const { chainId, config } = await checkNetworkAndGetConfig(provider);
       
       setStatus(`Connecting to wallet on ${config.name}...`);
       const signer = await provider.getSigner();
+
+      setStatus("Testing contract connection...");
+      const rpcUrl = chainId === 8453 ? 
+        "https://mainnet.base.org" : 
+        "https://sepolia.base.org";
+      
+      const contractTest = await testContractConnection(config.contractAddress, rpcUrl);
+      if (!contractTest) {
+        throw new Error("Contract connection test failed");
+      }
 
       setStatus("Minting NFT...");
       const tx = await mintWuTangNFT({ 
@@ -157,20 +199,14 @@ export default function MintButton({
         base64Image 
       });
       
-      // Update state to reflect that user has now minted
       setHasAlreadyMinted(true);
       
       if (tx && tx.hash) {
-        setStatus(`NFT minted successfully! 🎉 Transaction: ${tx.hash.substring(0, 10)}...`);
-        logger.log(`View on explorer: ${config.explorerUrl}/tx/${tx.hash}`);
+        setStatus(`NFT mint transaction submitted! 🎉 Hash: ${tx.hash.substring(0, 10)}...`);
       } else {
         setStatus("NFT mint transaction sent! 🎉");
       }
-      
-      logger.debug("Transaction:", tx);
     } catch (err: unknown) {
-      logger.error("Mint error:", err);
-      
       const error = err as { code?: string | number; message?: string };
       const errorMessage = error.message || String(err);
       
@@ -193,11 +229,16 @@ export default function MintButton({
       } else {
         setStatus("Mint failed: " + errorMessage);
       }
+    } finally {
+      setIsMinting(false);
     }
   };
 
-  const isDisabled = isCheckingMintStatus || hasAlreadyMinted || (!!status && status.includes("..."));
-  const buttonText = isCheckingMintStatus ? "Checking..." : hasAlreadyMinted ? "Already Minted" : "Mint as NFT";
+  const isDisabled = isCheckingMintStatus || hasAlreadyMinted || isMinting || (!!status && status.includes("..."));
+  const buttonText = isCheckingMintStatus ? "Checking..." : 
+                     isMinting ? "Minting..." : 
+                     hasAlreadyMinted ? "Already Minted" : 
+                     "Mint as NFT";
 
   return (
     <div>
@@ -209,13 +250,13 @@ export default function MintButton({
         disabled={isDisabled}
       >
         <span>{buttonText}</span>
-        {!hasAlreadyMinted && !isCheckingMintStatus && (
+        {!hasAlreadyMinted && !isCheckingMintStatus && !isMinting && (
           <span style={{ display: 'block' }}>(0.002 ETH)</span>
         )}
       </button>
       {status && (
         <div className={`text-sm mt-2 text-center ${
-          status.includes("successfully") ? "text-green-600" : 
+          status.includes("successfully") || status.includes("submitted") ? "text-green-600" : 
           status.includes("failed") || status.includes("error") || status.includes("cancelled") ? "text-red-600" : 
           status.includes("already minted") ? "text-orange-600" :
           "text-gray-600"
