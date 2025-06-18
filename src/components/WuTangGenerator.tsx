@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { generateWuTangName } from '@/lib/wu-names';
 import WuTangCanvas from './WuTangCanvas';
+import MintButton from "@/components/MintButton";
 import { sdk } from '@farcaster/frame-sdk';
 
 export default function WuTangGenerator() {
   const [username, setUsername] = useState<string>('');
   const [wuName, setWuName] = useState<string>('');
+  const [imageData, setImageData] = useState<string | null>(null);
 
   useEffect(() => {
     const initFarcaster = async () => {
@@ -62,13 +64,23 @@ export default function WuTangGenerator() {
           </div>
           <WuTangCanvas
             wuName={wuName}
+            setImageData={setImageData}
           />
-          <button
-            onClick={handleShare}
-            className="mt-4 px-6 py-2 bg-purple-600 text-white font-bold rounded hover:bg-purple-700"
-          >
-            Share to Farcaster
-          </button>
+          {imageData && (
+            <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+              <button
+                onClick={handleShare}
+                className="px-6 py-2 bg-purple-600 text-white font-bold rounded hover:bg-purple-700"
+              >
+                Share to Farcaster
+              </button>
+              <MintButton
+                wuName={wuName}
+                base64Image={imageData}
+                contractAddress="0xYourDeployedContractAddress"
+              />
+            </div>
+          )}
         </div>
       )}
     </section>

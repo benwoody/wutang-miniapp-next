@@ -43,4 +43,5 @@ next-env.d.ts
 .wake
 .vscode
 
-/contracts/lib
+contracts/cache/
+contracts/out/
