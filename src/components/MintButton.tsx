@@ -2,6 +2,7 @@ import { useState } from "react";
 import { mintWuTangNFT } from "@/utils/mintWuTangNFT";
 import { ethers } from "ethers";
 import { getContractConfig, SUPPORTED_CHAIN_IDS } from "@/config/contracts";
+import { sdk } from '@farcaster/frame-sdk';
 
 export default function MintButton({
   wuName,
@@ -28,16 +29,38 @@ export default function MintButton({
     return { chainId, config };
   };
 
+  const getWalletProvider = async () => {
+    // Try Farcaster embedded wallet first
+    try {
+      const context = await sdk.context;
+      // Check if we're in Farcaster and have wallet access
+      if (context.client && context.user) {
+        // Try to get the wallet provider from the Farcaster SDK
+        const walletProvider = sdk.wallet.ethProvider;
+        if (walletProvider) {
+          console.log("Using Farcaster embedded wallet");
+          return new ethers.BrowserProvider(walletProvider);
+        }
+      }
+    } catch (error) {
+      console.log("Farcaster wallet not available, trying external wallet:", error);
+    }
+
+    // Fallback to external wallet (MetaMask, etc.)
+    // @ts-ignore
+    if (window.ethereum) {
+      console.log("Using external wallet (MetaMask, etc.)");
+      // @ts-ignore
+      return new ethers.BrowserProvider(window.ethereum);
+    }
+
+    throw new Error("No wallet found. Please use Farcaster app or install MetaMask");
+  };
+
   const handleMint = async () => {
     setStatus("Checking wallet...");
     try {
-      // @ts-ignore
-      if (!window.ethereum) {
-        throw new Error("Please install MetaMask or another Web3 wallet");
-      }
-
-      // @ts-ignore
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = await getWalletProvider();
       
       // Check network and get contract config
       const { chainId, config } = await checkNetworkAndGetConfig(provider);
@@ -69,6 +92,8 @@ export default function MintButton({
         setStatus(err.message);
       } else if (err.message.includes("Contract not deployed")) {
         setStatus(err.message);
+      } else if (err.message.includes("No wallet found")) {
+        setStatus("Please open in Farcaster app or connect external wallet");
       } else {
         setStatus("Mint failed: " + err.message);
       }
@@ -82,7 +107,8 @@ export default function MintButton({
         className="px-6 py-2 bg-green-600 text-white font-bold rounded hover:bg-green-700 disabled:opacity-50"
         disabled={!!status && status.includes("...")}
       >
-        Mint as NFT (0.002 ETH)
+        <span>Mint as NFT</span>
+        <span style={{ display: 'block' }}>(0.002 ETH)</span>
       </button>
       {status && (
         <div className={`text-sm mt-2 text-center ${

@@ -72,7 +72,8 @@ export default function WuTangGenerator() {
                 onClick={handleShare}
                 className="px-6 py-2 bg-purple-600 text-white font-bold rounded hover:bg-purple-700"
               >
-                Share to Farcaster
+                <span>Share to</span>
+                <span style={{ display: 'block' }}>Farcaster</span>
               </button>
             <MintButton
               wuName={wuName}
