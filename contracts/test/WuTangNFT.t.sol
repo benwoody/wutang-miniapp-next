@@ -33,6 +33,32 @@ contract WuTangNFTTest is Test {
         nft.mintNFT{value: 0.001 ether}(user, tokenURI);
     }
 
+    function testGetMintedTokens() public {
+        string memory tokenURI = "data:application/json;base64,eyJmb28iOiJiYXIifQ==";
+
+        // User mints two NFTs
+        vm.prank(user);
+        nft.mintNFT{value: 0.002 ether}(user, tokenURI);
+
+        // Get minted tokens for user
+        uint256[] memory tokens = nft.getMintedTokens(user);
+
+        console.log("Minted tokens for user:", tokens.length);
+        assertEq(tokens.length, 1);
+        assertEq(tokens[0], 0);
+    }
+
+    function testUserCanOnlyMintOnce() public {
+        string memory tokenURI = "data:application/json;base64,eyJmb28iOiJiYXIifQ==";
+        vm.prank(user);
+        nft.mintNFT{value: 0.002 ether}(user, tokenURI);
+
+        // Try to mint again for the same user
+        vm.prank(user);
+        vm.expectRevert("User has already minted");
+        nft.mintNFT{value: 0.002 ether}(user, tokenURI);
+    }
+
     function testOwnerCanWithdraw() public {
         string memory tokenURI = "data:application/json;base64,eyJmb28iOiJiYXIifQ==";
         vm.prank(user);
