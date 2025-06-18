@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { compressCanvasImage, getBase64SizeKB } from '@/utils/imageCompression';
 
 interface WuTangCanvasProps {
   wuName: string;
@@ -35,7 +36,17 @@ export default function WuTangCanvas({ wuName, onImageGenerated }: WuTangCanvasP
       ctx.fillText(wuName, canvas.width / 2, canvas.height / 2 + 3);
 
       if (onImageGenerated) {
-        onImageGenerated(canvas.toDataURL("image/png"));
+        // Use advanced compression utility to ensure optimal file size
+        const compressedImage = compressCanvasImage(canvas, {
+          maxSizeKB: 100,  // Max 100KB for NFT metadata
+          quality: 0.8,    // 80% quality
+          format: 'jpeg'   // JPEG for better compression
+        });
+        
+        const sizeKB = getBase64SizeKB(compressedImage);
+        console.log(`Generated Wu-Tang image: ${sizeKB.toFixed(1)}KB`);
+        
+        onImageGenerated(compressedImage);
       }
     };
   }, [wuName, onImageGenerated]);
