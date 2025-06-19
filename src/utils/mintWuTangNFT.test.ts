@@ -21,7 +21,7 @@ const mockCanvas = {
 };
 
 const mockImage = {
-  onload: null as any,
+  onload: null as (() => void) | null,
   src: '',
 };
 
