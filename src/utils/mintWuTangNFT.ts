@@ -67,19 +67,9 @@ export async function mintWuTangNFT({
   const contract = new ethers.Contract(contractAddress, WuTangNFTABI as ethers.InterfaceAbi, signer);
   const signerAddress = await signer.getAddress();
   
-  // Try to estimate gas first, with fallback to absolute maximum limit
-  let gasLimit = 5000000; // Absolute maximum gas limit - near block limit
-  try {
-    const estimatedGas = await contract.mintNFT.estimateGas(
-      signerAddress,
-      tokenURI,
-      { value: ethers.parseEther("0.002") }
-    );
-    // Add 100% buffer to estimated gas for absolute safety
-    gasLimit = Number(estimatedGas) + Number(estimatedGas); // Double the estimated gas
-  } catch {
-    // Use default gas limit if estimation fails
-  }
+  // Farcaster Wallet doesn't support eth_estimateGas, so use a fixed VERY high gas limit
+  // Bumping to maximum possible gas to prevent any out-of-gas errors
+  const gasLimit = 30000000; // 30M gas - maximum possible limit
   
   const txParams = { 
     value: ethers.parseEther("0.002"),
@@ -93,16 +83,9 @@ export async function mintWuTangNFT({
       txParams
     );
     
-    // Wait for the transaction to be mined
-    try {
-      const receipt = await tx.wait(1); // Wait for 1 confirmation
-      if (receipt?.status !== 1) {
-        throw new Error("Transaction failed during execution");
-      }
-    } catch {
-      // Could not wait for transaction confirmation (Farcaster limitation)
-      // Transaction was sent successfully
-    }
+    // Note: Farcaster Wallet doesn't support eth_getTransactionReceipt
+    // so we can't wait for confirmation. The transaction hash is returned
+    // and the user can check the status on the blockchain explorer.
     
     return tx;
   } catch (error) {

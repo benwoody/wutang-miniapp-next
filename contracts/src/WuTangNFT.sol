@@ -15,6 +15,7 @@ contract WuTangNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     
     // Events for better tracking
     event NFTMinted(address indexed to, uint256 indexed tokenId, string tokenURI);
+    event NFTBurned(address indexed from, uint256 indexed tokenId);
     event FundsWithdrawn(address indexed owner, uint256 amount);
 
     constructor(address initialOwner) ERC721("WuTang Name NFT", "WUTANG") Ownable(initialOwner) {}
@@ -60,5 +61,49 @@ contract WuTangNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     function getContractBalance() external view onlyOwner returns (uint256) {
         return address(this).balance;
+    }
+
+    /**
+     * @dev Burns a token. Only the contract owner can burn tokens.
+     * This function removes the token from existence and updates the user's mint status.
+     * @param tokenId The ID of the token to burn
+     */
+    function burnNFT(uint256 tokenId) public onlyOwner nonReentrant {
+        address tokenOwner = ownerOf(tokenId);
+        require(tokenOwner != address(0), "Token does not exist");
+        
+        // Remove token from user's minted tokens array
+        uint256[] storage userTokens = _mintedTokensByUser[tokenOwner];
+        for (uint256 i = 0; i < userTokens.length; i++) {
+            if (userTokens[i] == tokenId) {
+                // Move the last element to the current position and remove the last element
+                userTokens[i] = userTokens[userTokens.length - 1];
+                userTokens.pop();
+                break;
+            }
+        }
+        
+        // If user has no more tokens, reset their mint status
+        if (userTokens.length == 0) {
+            hasMinted[tokenOwner] = false;
+        }
+        
+        // Burn the token
+        _burn(tokenId);
+        
+        emit NFTBurned(tokenOwner, tokenId);
+    }
+
+    /**
+     * @dev Burns multiple tokens in a single transaction. Only the contract owner can burn tokens.
+     * @param tokenIds Array of token IDs to burn
+     */
+    function burnMultipleNFTs(uint256[] calldata tokenIds) external onlyOwner nonReentrant {
+        require(tokenIds.length > 0, "No tokens to burn");
+        require(tokenIds.length <= 50, "Too many tokens to burn at once"); // Gas limit protection
+        
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            burnNFT(tokenIds[i]);
+        }
     }
 }

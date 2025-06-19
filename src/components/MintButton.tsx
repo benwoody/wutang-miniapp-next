@@ -115,39 +115,40 @@ export default function MintButton({
 
   const checkIfUserHasMinted = useCallback(async () => {
     try {
-      // In Farcaster, we might not be able to check mint status without user interaction
-      // So we'll skip the check and just show the mint button
-      const context = await sdk.context;
-      if (context.client && context.user) {
-        logger.debug("In Farcaster environment - skipping mint status check");
-        setIsCheckingMintStatus(false);
-        return;
-      }
-
-      // Only check mint status for external wallets
+      logger.debug("Checking if user has already minted...");
+      
       const provider = await getWalletProvider();
       const { config } = await checkNetworkAndGetConfig(provider);
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
 
-      // Create contract instance
+      logger.debug(`Checking mint status for address: ${userAddress}`);
+
+      // Use a public RPC provider for reading to avoid Farcaster Wallet compatibility issues
+      const rpcUrl = config.name.includes("Sepolia") ? 
+        "https://sepolia.base.org" : 
+        "https://mainnet.base.org";
+      
+      const publicProvider = new ethers.JsonRpcProvider(rpcUrl);
+      
+      // Create a contract instance using the public provider for reading
       const contract = new ethers.Contract(
         config.contractAddress,
         [
           "function hasMinted(address) view returns (bool)"
         ],
-        provider
+        publicProvider
       );
 
+      logger.debug(`Calling hasMinted(${userAddress}) on contract ${config.contractAddress}`);
       const hasMinted = await contract.hasMinted(userAddress);
-      setHasAlreadyMinted(hasMinted);
+      logger.debug(`Has minted result: ${hasMinted}`);
       
-      if (hasMinted) {
-        setStatus("You have already minted an NFT");
-      }
+      setHasAlreadyMinted(hasMinted);
     } catch (error) {
-      logger.debug("Could not check mint status:", error);
-      // Don't set error status here, just allow the user to try minting
+      logger.error("Could not check mint status:", error);
+      // If we can't check, assume they haven't minted (allow them to try)
+      setHasAlreadyMinted(false);
     } finally {
       setIsCheckingMintStatus(false);
     }
@@ -202,6 +203,13 @@ export default function MintButton({
       setHasAlreadyMinted(true);
       
       if (tx && tx.hash) {
+        // Log the BaseScan URL for easy access
+        const explorerUrl = config.explorerUrl;
+        const transactionUrl = `${explorerUrl}/tx/${tx.hash}`;
+        console.log(`🎉 NFT Minted Successfully!`);
+        console.log(`📋 Transaction Hash: ${tx.hash}`);
+        console.log(`🔗 View on BaseScan: ${transactionUrl}`);
+        
         setStatus(`NFT mint transaction submitted! 🎉 Hash: ${tx.hash.substring(0, 10)}...`);
       } else {
         setStatus("NFT mint transaction sent! 🎉");
@@ -254,16 +262,6 @@ export default function MintButton({
           <span style={{ display: 'block' }}>(0.002 ETH)</span>
         )}
       </button>
-      {status && (
-        <div className={`text-sm mt-2 text-center ${
-          status.includes("successfully") || status.includes("submitted") ? "text-green-600" : 
-          status.includes("failed") || status.includes("error") || status.includes("cancelled") ? "text-red-600" : 
-          status.includes("already minted") ? "text-orange-600" :
-          "text-gray-600"
-        }`}>
-          {status}
-        </div>
-      )}
     </div>
   );
 }

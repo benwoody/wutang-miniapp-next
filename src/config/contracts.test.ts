@@ -70,14 +70,13 @@ describe('Contract Configuration', () => {
       // Note: Currently using placeholder address, will be updated when deployed
     });
 
-    it('mainnet uses placeholder, sepolia has deployed contract', () => {
+    it('both mainnet and sepolia have deployed contracts', () => {
       const mainnetConfig = getContractConfig(8453);
       const sepoliaConfig = getContractConfig(84532);
       
-      // Mainnet still uses placeholder address
-      expect(mainnetConfig?.contractAddress).toBe('0x0000000000000000000000000000000000000000');
-      // Sepolia has deployed contract
-      expect(sepoliaConfig?.contractAddress).toBe('0x18f2589406bda8202C979F5d9c79400d16Ff25C5');
+      // Both networks now have deployed contracts
+      expect(mainnetConfig?.contractAddress).toBe('0xBF7Af03bbE41A9638c693f1BA0F320759ee6369F');
+      expect(sepoliaConfig?.contractAddress).toBe('0x18604C6242b1995d4FcFD1bfa4311c60F28A3f74');
     });
   });
 
@@ -145,17 +144,17 @@ describe('Contract Configuration', () => {
       });
     });
 
-    it('contract addresses are different (mainnet placeholder, sepolia deployed)', () => {
+    it('contract addresses are different (both networks deployed)', () => {
       const addresses = SUPPORTED_CHAIN_IDS.map(chainId => {
         const config = getContractConfig(chainId);
         return config?.contractAddress;
       });
 
-      // Now we have different addresses: mainnet placeholder, sepolia deployed
+      // Now we have different addresses: both networks deployed
       const uniqueAddresses = new Set(addresses);
       expect(uniqueAddresses.size).toBe(2);
-      expect(addresses).toContain('0x0000000000000000000000000000000000000000'); // Mainnet placeholder
-      expect(addresses).toContain('0x18f2589406bda8202C979F5d9c79400d16Ff25C5'); // Sepolia deployed
+      expect(addresses).toContain('0xBF7Af03bbE41A9638c693f1BA0F320759ee6369F'); // Mainnet deployed
+      expect(addresses).toContain('0x18604C6242b1995d4FcFD1bfa4311c60F28A3f74'); // Sepolia deployed
     });
   });
 
