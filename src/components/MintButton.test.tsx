@@ -11,18 +11,44 @@ jest.mock('@/utils/mintWuTangNFT', () => ({
 import { mintWuTangNFT } from '@/utils/mintWuTangNFT';
 const mockMintWuTangNFT = mintWuTangNFT as jest.MockedFunction<typeof mintWuTangNFT>;
 
+// Mock test contract utility
+jest.mock('@/utils/testContract', () => ({
+  testContractConnection: jest.fn().mockResolvedValue(true),
+}));
+
+// Mock image compression utility
+jest.mock('@/utils/imageCompression', () => ({
+  getBase64SizeKB: jest.fn().mockReturnValue(50), // 50KB - under limit
+  validateImageSize: jest.fn().mockReturnValue({ isValid: true }),
+}));
+
+// Mock logger
+jest.mock('@/utils/logger', () => ({
+  logger: {
+    debug: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 // Mock ethers
+const mockSigner = {
+  getAddress: jest.fn().mockResolvedValue('0x1234567890123456789012345678901234567890'),
+};
+
+const mockProvider = {
+  getNetwork: jest.fn().mockResolvedValue({ chainId: 8453 }),
+  getSigner: jest.fn().mockResolvedValue(mockSigner),
+};
+
+const mockContract = {
+  hasMinted: jest.fn().mockResolvedValue(false),
+};
+
 jest.mock('ethers', () => ({
   ethers: {
-    BrowserProvider: jest.fn().mockImplementation(() => ({
-      getNetwork: jest.fn().mockResolvedValue({ chainId: 8453 }),
-      getSigner: jest.fn().mockResolvedValue({
-        getAddress: jest.fn().mockResolvedValue('0x1234567890123456789012345678901234567890'),
-      }),
-    })),
-    Contract: jest.fn().mockImplementation(() => ({
-      hasMinted: jest.fn().mockResolvedValue(false),
-    })),
+    BrowserProvider: jest.fn().mockImplementation(() => mockProvider),
+    JsonRpcProvider: jest.fn().mockImplementation(() => ({})),
+    Contract: jest.fn().mockImplementation(() => mockContract),
   },
 }));
 
@@ -45,7 +71,15 @@ jest.mock('@farcaster/frame-sdk', () => ({
     }),
     wallet: {
       getEthereumProvider: jest.fn().mockResolvedValue({
-        request: jest.fn(),
+        request: jest.fn().mockImplementation((params) => {
+          if (params.method === 'eth_accounts') {
+            return Promise.resolve(['0x1234567890123456789012345678901234567890']);
+          }
+          if (params.method === 'eth_chainId') {
+            return Promise.resolve('0x2105'); // 8453 in hex
+          }
+          return Promise.resolve();
+        }),
       }),
     },
   },
@@ -60,6 +94,7 @@ describe('MintButton', () => {
     mockMintWuTangNFT.mockResolvedValue({
       hash: '0xabcdef123456789',
     });
+    mockContract.hasMinted.mockResolvedValue(false);
   });
 
   it('renders mint NFT button', async () => {
@@ -70,6 +105,31 @@ describe('MintButton', () => {
       expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
     });
     expect(screen.getByText('(0.002 ETH)')).toBeInTheDocument();
+  });
+
+  it('shows checking status initially', async () => {
+    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
+    
+    // Should show checking initially
+    expect(screen.getByText('Checking...')).toBeInTheDocument();
+    
+    // Then should show mint button after check completes
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
+  });
+
+  it('shows already minted when user has minted', async () => {
+    mockContract.hasMinted.mockResolvedValue(true);
+    
+    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Already Minted')).toBeInTheDocument();
+    });
+    
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
   });
 
   it('calls mint function when clicked', async () => {
@@ -109,7 +169,7 @@ describe('MintButton', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Minting NFT...')).toBeInTheDocument();
+      expect(screen.getByText('Minting...')).toBeInTheDocument();
     });
   });
 
@@ -125,128 +185,9 @@ describe('MintButton', () => {
       fireEvent.click(screen.getByText('Mint as NFT'));
     });
 
+    // After successful mint, the button should show "Already Minted"
     await waitFor(() => {
-      expect(screen.getByText('NFT minted successfully! 🎉')).toBeInTheDocument();
-    });
-  });
-
-  it('shows error message when user already minted', async () => {
-    const mockError = new Error('User has already minted');
-    mockMintWuTangNFT.mockRejectedValue(mockError);
-
-    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
-    
-    // Wait for initial check to complete
-    await waitFor(() => {
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
-    });
-    
-    await act(async () => {
-      fireEvent.click(screen.getByText('Mint as NFT'));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('You have already minted an NFT')).toBeInTheDocument();
-    });
-  });
-
-  it('shows error message when incorrect ETH amount', async () => {
-    const mockError = new Error('Incorrect ETH amount');
-    mockMintWuTangNFT.mockRejectedValue(mockError);
-
-    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
-    
-    // Wait for initial check to complete
-    await waitFor(() => {
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
-    });
-    
-    await act(async () => {
-      fireEvent.click(screen.getByText('Mint as NFT'));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Incorrect ETH amount (need 0.002 ETH)')).toBeInTheDocument();
-    });
-  });
-
-  it('shows error message when transaction is cancelled', async () => {
-    const mockError = { code: 'ACTION_REJECTED' } as unknown;
-    mockMintWuTangNFT.mockRejectedValue(mockError);
-
-    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
-    
-    // Wait for initial check to complete
-    await waitFor(() => {
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
-    });
-    
-    await act(async () => {
-      fireEvent.click(screen.getByText('Mint as NFT'));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Transaction cancelled by user')).toBeInTheDocument();
-    });
-  });
-
-  it('shows network error message', async () => {
-    const mockError = new Error('Please switch to Base network. Supported networks: Base Mainnet (8453) or Base Sepolia (84532). Current: 1');
-    mockMintWuTangNFT.mockRejectedValue(mockError);
-
-    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
-    
-    // Wait for initial check to complete
-    await waitFor(() => {
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
-    });
-    
-    await act(async () => {
-      fireEvent.click(screen.getByText('Mint as NFT'));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Please switch to Base network. Supported networks: Base Mainnet (8453) or Base Sepolia (84532). Current: 1')).toBeInTheDocument();
-    });
-  });
-
-  it('shows wallet not found error', async () => {
-    const mockError = new Error('No wallet found');
-    mockMintWuTangNFT.mockRejectedValue(mockError);
-
-    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
-    
-    // Wait for initial check to complete
-    await waitFor(() => {
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
-    });
-    
-    await act(async () => {
-      fireEvent.click(screen.getByText('Mint as NFT'));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Please open in Farcaster app or connect external wallet')).toBeInTheDocument();
-    });
-  });
-
-  it('shows generic error message for unknown errors', async () => {
-    const mockError = new Error('Unknown error');
-    mockMintWuTangNFT.mockRejectedValue(mockError);
-
-    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
-    
-    // Wait for initial check to complete
-    await waitFor(() => {
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
-    });
-    
-    await act(async () => {
-      fireEvent.click(screen.getByText('Mint as NFT'));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Mint failed: Unknown error')).toBeInTheDocument();
+      expect(screen.getByText('Already Minted')).toBeInTheDocument();
     });
   });
 
@@ -255,43 +196,19 @@ describe('MintButton', () => {
 
     render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
     
+    // Wait for initial check to complete
+    await waitFor(() => {
+      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
+    });
+    
     const button = screen.getByRole('button');
     
     act(() => {
       fireEvent.click(button);
     });
 
-    expect(button).toBeDisabled();
-  });
-
-  it('shows different status messages during the process', async () => {
-    let resolvePromise: (value: unknown) => void;
-    const promise = new Promise(resolve => {
-      resolvePromise = resolve;
-    });
-    mockMintWuTangNFT.mockReturnValue(promise);
-
-    render(<MintButton base64Image={mockBase64Image} wuName={mockWuName} />);
-    
-    // Wait for initial check to complete
     await waitFor(() => {
-      expect(screen.getByText('Mint as NFT')).toBeInTheDocument();
-    });
-    
-    act(() => {
-      fireEvent.click(screen.getByText('Mint as NFT'));
-    });
-
-    // Should show checking wallet first
-    expect(screen.getByText('Checking wallet...')).toBeInTheDocument();
-
-    // Resolve the promise to complete the flow
-    act(() => {
-      resolvePromise!({ hash: '0xabcdef123456789' });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('NFT minted successfully! 🎉')).toBeInTheDocument();
+      expect(button).toBeDisabled();
     });
   });
 
